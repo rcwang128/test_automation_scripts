@@ -17,8 +17,10 @@ time.sleep(0.5)
 print(inst.query("*IDN?"))
 time.sleep(0.5)
 
-interval_in_ms = 100
-number_of_readings = 10
+inst.write("DISP OFF")
+
+interval_in_ms = 50
+number_of_readings = 120
 
 def config():
     inst.write("CONF:CURR:DC 1, 0.00001")
@@ -27,12 +29,15 @@ def config():
     inst.write("TRIG:COUN %d" % number_of_readings)
     inst.write("INIT")
 
+t_start = time.perf_counter()
 config()
-time.sleep(1)
+time.sleep(60)
 currents = inst.query("FETCh?")
+t_elapsed = time.perf_counter() - t_start
 
 #print(inst.query("SYSTem:ERRor?"))
 time.sleep(0.5)
+inst.write("DISP ON")
 inst.close()
 
 # Data processing
@@ -41,12 +46,15 @@ for n in range(len(currents)):
     currents[n] = float(currents[n]) * 1000
     print(currents[n])
 
-print(currents)
-print(len(currents))
+#print(currents)
+#print(len(currents))
+print("{:.2f} s".format(t_elapsed))
 
-t = np.arange(0., 1., interval_in_ms / 1000.0)
-plt.title("Current")
-plt.axis([0, 1, 0, 1])
+
+t = np.arange(0., 60., interval_in_ms / 1000.0)
+plt.title("Current Log " + str(interval_in_ms) + "ms Interval")
+plt.ylabel("Currents (mA)"); plt.xlabel("Time")
+plt.axis([0, 60, 0, 8])
 plt.plot(t, currents, "bs")
 plt.show()
 
